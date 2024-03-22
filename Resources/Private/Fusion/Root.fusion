@@ -1,0 +1,15 @@
+prototype(Neos.Neos:Page) {
+
+    head {
+        moveableNodes = Neos.Fusion:Tag {
+            @position = 'end'
+            tagName = 'link'
+            attributes {
+                rel = 'stylesheet'
+                href= ${StaticResource.uri('NeosRulez.Neos.MoveableNodes', 'Public/GuestFrame.css')}
+            }
+            @if.condition = ${site.context.inBackend}
+        }
+    }
+
+}

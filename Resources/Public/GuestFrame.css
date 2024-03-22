@@ -1,0 +1,4 @@
+.movablenode { opacity:0.5; position: fixed; z-index:98989898989898989898; width:800px; height:auto; transform: scale(0.8); left:-89999px; top:-89999px; }
+.movablenode img { width:100%; height:auto; }
+.scroller-top, .scroller-bottom  { position: fixed; width:100%; height:60px; z-index:989898989898989898989898989898; left:0; top:0; }
+.scroller-bottom { top:auto; bottom:0; }
