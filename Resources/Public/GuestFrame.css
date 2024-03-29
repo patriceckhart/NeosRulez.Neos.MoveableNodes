@@ -2,3 +2,11 @@
 .movablenode img { width:100%; height:auto; }
 .scroller-top, .scroller-bottom  { position: fixed; width:100%; height:60px; z-index:989898989898989898989898989898; left:0; top:0; }
 .scroller-bottom { top:auto; bottom:0; }
+
+.hover-top, .hover-bottom { position: relative; }
+.hover-top:before, .hover-bottom:before { position: absolute; width:100%; height:30px; left:0; background:rgba(0,173,238, 0.5); z-index:98989898989898989897; content:''; }
+.hover-top:before { top:0; }
+.hover-bottom:before { bottom:0; }
+
+.paste-arrow { width:30px; position: fixed; z-index:98989898989898989897; left:-89999px; top:-89999px; }
+.paste-arrow svg path { fill:#00adee; }

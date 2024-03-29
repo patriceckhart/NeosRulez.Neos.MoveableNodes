@@ -45,6 +45,23 @@ class AddButton extends Component {
 
 		const {i18nRegistry, focusedSelector, pasteNode, focusNode, canBePasted} = this.props;
 
+		const guestFrame = document.getElementsByName('neos-content-main')[0];
+		const iframeDocument = guestFrame.contentDocument || guestFrame.contentWindow.document;
+		const body = iframeDocument.getElementsByTagName('body')[0];
+
+
+		const arrowElement = document.createElement('div');
+		arrowElement.id = 'pasteArrow';
+		arrowElement.classList.add('paste-arrow')
+		arrowElement.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="12" viewBox="0 0 868 334.517"><path d="M840.344 129.526l-704.456.166 73.5-68.086a26.751 26.751 0 000-37.857l-16.1-15.962a27.117 27.117 0 00-38.024-.02L7.844 148.845a26.694 26.694 0 000 37.8l146.412 140.1a27.142 27.142 0 0038.024 0l16.1-15.962a26.278 26.278 0 007.848-18.832 25.493 25.493 0 00-7.848-18.479l-73.664-67.67h705.996c14.828 0 27.288-12.661 27.288-27.344v-22.575c0-14.682-12.828-26.357-27.656-26.357z"></path></svg>';
+		body.appendChild(arrowElement);
+
+
+		let contextPathToPaste = false;
+		let fusionPathToPaste = false;
+
+		let hoverPosition = false;
+
 		const findParentWithAttribute = (element, attributeName) => {
 			if (!element) {
 				return null;
@@ -62,22 +79,7 @@ class AddButton extends Component {
 			body.appendChild(newElement);
 		}
 
-		// const canBePasted = (node, contextPathToPaste) => {
-		// 	const nodeContextPath = node.getAttribute('data-__neos-node-contextpath');
-		// 	if(node.parentElement.getAttribute('data-__neos-node-contextpath') === contextPathToPaste) {
-		// 		return false;
-		// 	} else {
-		// 		canBePasted(node.parentElement, contextPathToPaste);
-		// 	}
-		// 	return true;
-		// }
-
 		const handleMouseDown = () => {
-
-			const guestFrame = document.getElementsByName('neos-content-main')[0];
-			const iframeDocument = guestFrame.contentDocument || guestFrame.contentWindow.document;
-
-			const body = iframeDocument.getElementsByTagName('body')[0];
 
 			document.getElementById('neos-ContentTree-CutSelectedNode').click();
 			const node = findNodeInGuestFrame(focusedSelector.contextPath);
@@ -87,16 +89,27 @@ class AddButton extends Component {
 
 			node.parentNode.appendChild(dummyElement);
 
-			let contextPathToPaste = false;
-			let fusionPathToPaste = false;
+			const pasteNodeInTarget = (positionToPaste) => {
+				const paste = document.getElementById('neos-ContentTree-PasteClipBoardNode');
 
-			const pasteNodeInTarget = (contextPathToPaste, fusionPathToPaste) => {
-				// if(canBePasted) {
-				// 	pasteNode(contextPathToPaste, fusionPathToPaste);
-				// } else {
-				// 	console.log("Node can't be pasted")
-				// }
-				document.getElementById('neos-ContentTree-PasteClipBoardNode').click();
+				if(paste && !paste.hasAttribute('disabled')) {
+					paste.click();
+
+					const into = document.getElementById('into');
+					if(into && !into.hasAttribute('disabled')) {
+						document.getElementById('into').click();
+					} else {
+						if(positionToPaste === 'top' && document.getElementById('before')) {
+							document.getElementById('before').click();
+						}
+						if(positionToPaste === 'bottom' && document.getElementById('after')) {
+							document.getElementById('after').click();
+						}
+					}
+
+					document.getElementById('neos-InsertModeModal-apply').click();
+				}
+
 			}
 
 			let scrollInterval = false;
@@ -125,6 +138,7 @@ class AddButton extends Component {
 			}
 
 			const moveHandler = (event) => {
+
 				dummyElement.style.left = (event.clientX) + 'px';
 				dummyElement.style.top = (event.clientY) + 'px';
 
@@ -134,6 +148,25 @@ class AddButton extends Component {
 					contextPathToPaste = elementWithAttribute.getAttribute('data-__neos-node-contextpath');
 					fusionPathToPaste = elementWithAttribute.getAttribute('data-__neos-fusion-path');
 					focusNode(contextPathToPaste);
+
+					const rect = elementWithAttribute.getBoundingClientRect();
+					const mouseY = event.clientY - rect.top;
+					const divHeight = rect.bottom - rect.top;
+
+					const ratio = mouseY / divHeight;
+
+					arrowElement.style.left = `${rect.left}px`;
+
+					if (ratio < 0.5) {
+						hoverPosition = 'top';
+						arrowElement.style.top = `${rect.top}px`;
+						arrowElement.style.marginTop = `-35px`;
+					} else {
+						hoverPosition = 'bottom';
+						arrowElement.style.top = `${rect.bottom}px`;
+						arrowElement.style.marginTop = `8px`;
+					}
+
 				}
 			};
 
@@ -155,12 +188,25 @@ class AddButton extends Component {
 					body.querySelector('.scroller-bottom').remove();
 				}
 				if(contextPathToPaste && fusionPathToPaste) {
-					pasteNodeInTarget(contextPathToPaste, fusionPathToPaste);
+					if(focusedSelector.contextPath !== contextPathToPaste) {
+						pasteNodeInTarget(hoverPosition);
+					}
 					contextPathToPaste = false;
 					fusionPathToPaste = false;
+					hoverPosition = false;
+					removeHovers();
 				}
 			};
 			iframeDocument.addEventListener('mouseup', upHandler);
+		}
+
+		const removeHovers = () => {
+			const hovers = iframeDocument.querySelectorAll('.paste-arrow');
+			if(hovers && hovers.length > 0) {
+				hovers.forEach(hover => {
+					hover.remove();
+				})
+			}
 		}
 
 		return (
