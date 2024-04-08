@@ -39,11 +39,23 @@ class AddButton extends Component {
 
 	constructor(props) {
 		super(props);
+		this.state = {
+			altKey: false
+		};
+		this.handleKeyDown = this.handleKeyDown.bind(this);
 	}
+
+	handleKeyDown = (event) => {
+		if (event.altKey) {
+			console.log('Alt-Taste wurde gedrückt');
+			this.setState({altKey: !this.state.altKey})
+		}
+	};
 
 	render() {
 
 		const {i18nRegistry, focusedSelector, pasteNode, focusNode, canBePasted} = this.props;
+		const {altKey} = this.state;
 
 		const guestFrame = document.getElementsByName('neos-content-main')[0];
 		const iframeDocument = guestFrame.contentDocument || guestFrame.contentWindow.document;
@@ -81,7 +93,12 @@ class AddButton extends Component {
 
 		const handleMouseDown = () => {
 
-			document.getElementById('neos-ContentTree-CutSelectedNode').click();
+			if(altKey) {
+				document.getElementById('neos-ContentTree-CopySelectedNode').click();
+			} else {
+				document.getElementById('neos-ContentTree-CutSelectedNode').click();
+			}
+
 			const node = findNodeInGuestFrame(focusedSelector.contextPath);
 
 			const dummyElement = node.cloneNode(true);
@@ -195,6 +212,7 @@ class AddButton extends Component {
 					fusionPathToPaste = false;
 					hoverPosition = false;
 					removeHovers();
+					this.setState({altKey: false})
 				}
 			};
 			iframeDocument.addEventListener('mouseup', upHandler);
@@ -209,11 +227,14 @@ class AddButton extends Component {
 			}
 		}
 
+		guestFrame.contentWindow.addEventListener('keydown', this.handleKeyDown);
+		guestFrame.contentWindow.addEventListener('keyup', () => { this.setState({altKey: false})});
+
 		return (
 			<div onMouseDown={() => handleMouseDown()} >
 				<IconButton
 					id="neos-InlineToolbar-MoveNode"
-					icon="fas fa-arrows-alt"
+					icon={altKey ? 'far fa-clone' : 'fas fa-arrows-alt'}
 					onClick={() => {}}
 					hoverStyle="brand"
 					title={i18nRegistry.translate(unescape('NeosRulez.Neos.MoveableNodes:Main:label.moveButton'))}
