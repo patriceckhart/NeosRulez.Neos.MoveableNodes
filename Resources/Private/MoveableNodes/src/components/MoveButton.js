@@ -47,10 +47,15 @@ class AddButton extends Component {
 
 	handleKeyDown = (event) => {
 		if (event.altKey) {
-			console.log('Alt-Taste wurde gedrückt');
 			this.setState({altKey: !this.state.altKey})
 		}
 	};
+
+	componentDidMount() {
+		const guestFrame = document.getElementsByName('neos-content-main')[0];
+		guestFrame.contentWindow.addEventListener('keydown', this.handleKeyDown);
+		guestFrame.contentWindow.addEventListener('keyup', () => { this.setState({altKey: false})});
+	}
 
 	render() {
 
@@ -60,7 +65,6 @@ class AddButton extends Component {
 		const guestFrame = document.getElementsByName('neos-content-main')[0];
 		const iframeDocument = guestFrame.contentDocument || guestFrame.contentWindow.document;
 		const body = iframeDocument.getElementsByTagName('body')[0];
-
 
 		const arrowElement = document.createElement('div');
 		arrowElement.id = 'pasteArrow';
@@ -226,9 +230,6 @@ class AddButton extends Component {
 				})
 			}
 		}
-
-		guestFrame.contentWindow.addEventListener('keydown', this.handleKeyDown);
-		guestFrame.contentWindow.addEventListener('keyup', () => { this.setState({altKey: false})});
 
 		return (
 			<div onMouseDown={() => handleMouseDown()} >
